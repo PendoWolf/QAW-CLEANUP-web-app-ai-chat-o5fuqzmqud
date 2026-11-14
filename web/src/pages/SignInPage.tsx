@@ -1,5 +1,6 @@
 import { useState, type FormEvent } from "react";
 import { Navigate, useLocation, useNavigate } from "react-router-dom";
+import { errorStatusCode, trackEvent } from "../analytics/pendo";
 import { useAuth } from "../auth/AuthContext";
 
 /** Signs a user in with their email and password against the Tripwise API. */
@@ -24,8 +25,10 @@ export function SignInPage() {
     try {
       await signIn(email.trim(), password);
       navigate(from, { replace: true });
-    } catch {
+    } catch (e) {
       setError("That email and password don't match an account.");
+      // Pendo: the API refused the credentials and the error message shows.
+      trackEvent("Sign-in rejected", { status_code: errorStatusCode(e) });
     } finally {
       setSigningIn(false);
     }
